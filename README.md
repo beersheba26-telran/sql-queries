@@ -1,4 +1,4 @@
-# Chinook queries
+# Chinook queries 09-04-26
 ## distibution of sales by years and months 
 - Result table should look like<br>
 ![alt text](image.png)<br>
