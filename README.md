@@ -1,15 +1,7 @@
-# Chinook queries 09-04-26
-## distibution of sales by years and months 
-- Result table should look like<br>
-![alt text](image.png)<br>
-- Table should be ordered by year and month in the descending order
-- For extracting year, month from invoice date, apply function extract, like **extract(month from invoice_date)**
-## distribution of sales by genres
-- Result table should look like<br>
-![alt text](image-1.png)<br>
-- Table should be ordered by sales in the descending order
-## distribution of sales by artists
-- Result table should look like
-![alt text](image-2.png)<br>
-- Table should be ordered by sales in the descending order
+# Chinook queries 12-04-26
+## ranking genres by invoice lines
+### Top 3 genres bringing most revenue
+### All genres taking 3 top positions by revenue
+### All genres having 3 most sale values 
+### 20% genres bringing most revenue
 
