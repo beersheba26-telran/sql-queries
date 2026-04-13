@@ -1,7 +1,12 @@
-# Chinook queries 12-04-26
-## ranking genres by invoice lines
-### Top 3 genres bringing most revenue
-### All genres taking 3 top positions by revenue
-### All genres having 3 most sale values 
-### 20% genres bringing most revenue
-
+# Mongo queries 13/04/26
+## Movies in which number of the languages greater than number of the countries 
+### Output collection should contain following fields:
+- title<br>
+- number of the languages <br>
+- number of the countries
+## Comments of movies having award wins greater than 100
+### Output collection should contain the following fields:
+- Commentator email
+- Text of comment
+- movie title (no array field, consider operator $first)
+- movie award wins (no array field, consider operator $first)

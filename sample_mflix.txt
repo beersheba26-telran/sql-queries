@@ -1,0 +1,101 @@
+//getting all documents in whcih imdb.rating greater than tomatous.viewer.rating
+{$expr:{$lt:["$imdb.rating", "$tomatoes.viewer.rating"]}}
+//getting all documents with number of genres greater than 2
+{"genres.2":{$exists:true}}
+//getting data about movies of 20-th centure only on Russian
+{languages:["Russian"], year:{$gte:1900, $lt:2000}}
+//Top 5 acters casted in most movies having imdb.rating as number with avgRating value
+[
+  {
+    '$match': {
+      'imdb.rating': {
+        '$type': 'number'
+      }
+    }
+  }, {
+    '$unwind': {
+      'path': '$cast'
+    }
+  }, {
+    '$group': {
+      '_id': '$cast', 
+      'count': {
+        '$sum': 1
+      }, 
+      'titles': {
+        '$push': '$title'
+      }, 
+      'avgRating': {
+        '$avg': '$imdb.rating'
+      }
+    }
+  }, {
+    '$sort': {
+      'count': -1, 
+      'avgRating': -1
+    }
+  }, {
+    '$limit': 5
+  }, {
+    '$project': {
+      'acter': '$_id', 
+      '_id': 0, 
+      'titles': 1, 
+      'avgRating': {
+        '$round': [
+          '$avgRating', 2
+        ]
+      }
+    }
+  }
+]
+//getting all titles of movies with imdb rating  falling in 20% of highest values for 2010
+[
+  {
+    '$match': {
+      'imdb.rating': {
+        '$type': 'number'
+      }, 
+      'year': 2010
+    }
+  }, {
+    '$bucketAuto': {
+      'groupBy': '$imdb.rating', 
+      'buckets': 5, 
+      'output': {
+        'titles': {
+          '$push': '$title'
+        }, 
+        'year': {
+          '$min': '$year'
+        }
+      }
+    }
+  }, {
+    '$sort': {
+      '_id.min': -1
+    }
+  }, {
+    '$limit': 1
+  }, {
+    '$project': {
+      'titles': 1, 
+      'min_imdb_rating': '$_id.min', 
+      'max_imdb_rating': '$_id.max', 
+      'year': 1, 
+      'titles': 1
+    }
+  }
+]
+
+//lookup aggregation stage joining collection comments with collection movies
+[
+  {
+    '$lookup': {
+      'from': 'movies', 
+      'localField': 'movie_id', 
+      'foreignField': '_id', 
+      'as': 'result'
+    }
+  }
+]
