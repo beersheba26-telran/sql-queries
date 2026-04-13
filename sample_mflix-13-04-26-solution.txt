@@ -1,0 +1,69 @@
+## Movies in which number of the languages greater than number of the countries 
+### Output collection should contain following fields:
+- title<br>
+- number of the languages <br>
+- number of the countries
+[ 
+  { 
+    '$match': { 
+      'languages.0': { 
+        '$exists': true 
+      },  
+      'countries.0': { 
+        '$exists': true 
+      } 
+    } 
+  }, { 
+    '$project': { 
+      'Movie title': '$title',  
+      '_id': 0,  
+      'Number of the languages': { 
+        '$size': '$languages' 
+      },  
+      'Number of the countries': { 
+        '$size': '$countries' 
+      } 
+    } 
+  }, { 
+    '$match': { 
+      '$expr': { 
+        '$gt': [ 
+          '$Number of the languages', '$Number of the countries' 
+        ] 
+      } 
+    } 
+  } 
+] 
+-----------------------------------------------------
+## Comments of movies having award wins greater than 100
+### Output collection should contain the following fields:
+[
+  {
+    '$lookup': {
+      'from': 'movies', 
+      'localField': 'movie_id', 
+      'foreignField': '_id', 
+      'as': 'm'
+    }
+  }, {
+    '$match': {
+      'm.0': {
+        '$exists': true
+      }, 
+      'm.0.awards.wins': {
+        '$gt': 100
+      }
+    }
+  }, {
+    '$project': {
+      'Comentator email': '$email', 
+      'Text of comment': '$text', 
+      'movie title': {
+        '$first': '$m.title'
+      }, 
+      'movie award wins': {
+        '$first': '$m.awards.wins'
+      }
+    }
+  }
+]
