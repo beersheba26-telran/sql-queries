@@ -1,0 +1,334 @@
+## Movies having award wins greater than 100 with comments
+### Output fields
+- title
+- award wins
+- comments with following fields
+-- Commentator email
+-- Text of Comment
+[
+  {
+    '$match': {
+      'num_mflix_comments': {
+        '$gt': 0
+      }, 
+      'awards.wins': {
+        '$gt': 100
+      }
+    }
+  }, {
+    '$lookup': {
+      'from': 'comments', 
+      'let': {
+        'movieId': '$_id'
+      }, 
+      'pipeline': [
+        {
+          '$match': {
+            '$expr': {
+              '$eq': [
+                '$movie_id', '$$movieId'
+              ]
+            }
+          }
+        }, {
+          '$project': {
+            'Comentator email': '$email', 
+            '_id': 0, 
+            'Text of comment': '$text'
+          }
+        }
+      ], 
+      'as': 'award_win_comments'
+    }
+  }, {
+    '$project': {
+      'award_win_comments': 1, 
+      'title': 1, 
+      '_id': 0, 
+      'awards.wins': 1
+    }
+  }
+]
+-----------------------------------------------------------------------------------------
+# Average rating using $lookup
+## All movies, imdb rating of which greater than average rating over all movies
+### Output fields as follows
+- title
+- year
+- acters
+- rating
+- average rating
+[
+  {
+    '$match': {
+      'imdb.rating': {
+        '$type': 'number'
+      }
+    }
+  }, {
+    '$group': {
+      '_id': null, 
+      'avgRating': {
+        '$avg': '$imdb.rating'
+      }
+    }
+  }, {
+    '$lookup': {
+      'from': 'movies', 
+      'let': {
+        'avgRating': '$avgRating'
+      }, 
+      'pipeline': [
+        {
+          '$match': {
+            '$expr': {
+              '$gt': [
+                '$imdb.rating', '$$avgRating'
+              ]
+            }
+          }
+        }, {
+          '$project': {
+            'title': 1, 
+            '_id': 0, 
+            'year': 1, 
+            'cast': 1, 
+            'imdb.rating': 1
+          }
+        }
+      ], 
+      'as': 'result'
+    }
+  }, {
+    '$unwind': {
+      'path': '$result'
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'acters': '$result.cast', 
+      'title': '$result.title', 
+      'year': '$result.year', 
+      'imdbRating': '$result.imdb.rating', 
+      'avgRating': 1
+    }
+  }
+]
+-----------------------------------------------------------------------------
+# Average rating using $setWindowFields
+## All movies, imdb rating of which greater than average rating over all movies
+### Output fields as follows
+- title
+- year
+- acters
+- rating
+- average rating
+[
+  {
+    '$match': {
+      'imdb.rating': {
+        '$type': 'number'
+      }
+    }
+  }, {
+    '$setWindowFields': {
+      'output': {
+        'avgRating': {
+          '$avg': '$imdb.rating', 
+          'window': {
+            'documents': [
+              'unbounded', 'unbounded'
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    '$match': {
+      '$expr': {
+        '$gt': [
+          '$imdb.rating', '$avgRating'
+        ]
+      }
+    }
+  }, {
+    '$project': {
+      'avgRating': 1, 
+      '_id': 0, 
+      'title': 1, 
+      'imdbRating': '$imdb.rating', 
+      'acters': '$cast', 
+      'year': 1
+    }
+  }
+]
+---------------------------------------------------------------------------------------------
+# Top 10 movies according to number of award wins
+## Result fields as follows
+- title
+- year
+- imdb
+- awards
+- cast 
+[
+  {
+    '$project': {
+      'title': 1, 
+      'cast': 1, 
+      'year': 1, 
+      'imdb': 1, 
+      'awards': 1
+    }
+  }, {
+    '$setWindowFields': {
+      'partitionBy': '$imdb.id', 
+      'sortBy': {
+        '_id': 1
+      }, 
+      'output': {
+        'dupRank': {
+          '$rank': {}
+        }
+      }
+    }
+  }, {
+    '$match': {
+      'dupRank': 1
+    }
+  }, {
+    '$sort': {
+      'awards.wins': -1,
+      year: -1,
+      'imdb.rating':-1
+    }
+  }, {
+    '$limit': 10
+  }, {
+    '$project': {
+      '_id': 0, 
+      'dupRank': 0
+    }
+  }
+]
+------------------------------------------------------------------------------------
+# all movies taking 10 top positions by number of award wins
+## Result fields as follows
+- title
+- year
+- imdb
+- awards
+- cast 
+[
+  {
+    '$project': {
+      'title': 1, 
+      'cast': 1, 
+      'year': 1, 
+      'imdb': 1, 
+      'awards': 1
+    }
+  }, {
+    '$setWindowFields': {
+      'partitionBy': '$imdb.id', 
+      'sortBy': {
+        '_id': 1
+      }, 
+      'output': {
+        'dupRank': {
+          '$rank': {}
+        }
+      }
+    }
+  }, {
+    '$match': {
+      'dupRank': 1
+    }
+  }, {
+    '$sort': {
+      'awards.wins': -1
+    }
+  }, {
+    '$setWindowFields': {
+      'sortBy': {
+        'awards.wins': -1
+      }, 
+      'output': {
+        'position': {
+          '$rank': {}
+        }
+      }
+    }
+  }, {
+    '$match': {
+      'position': {
+        '$lte': 10
+      }
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'dupRank': 0
+    }
+  }
+]
+-------------------------------------------------------------------------------------
+# all movies having 10 highest values of  award wins
+## Result fields as follows
+- title
+- year
+- imdb
+- awards
+- cast 
+[
+  {
+    '$project': {
+      'title': 1, 
+      'cast': 1, 
+      'year': 1, 
+      'imdb': 1, 
+      'awards': 1
+    }
+  }, {
+    '$setWindowFields': {
+      'partitionBy': '$imdb.id', 
+      'sortBy': {
+        '_id': 1
+      }, 
+      'output': {
+        'dupRank': {
+          '$rank': {}
+        }
+      }
+    }
+  }, {
+    '$match': {
+      'dupRank': 1
+    }
+  }, {
+    '$sort': {
+      'awards.wins': -1
+    }
+  }, {
+    '$setWindowFields': {
+      'sortBy': {
+        'awards.wins': -1
+      }, 
+      'output': {
+        'denseRank': {
+          '$denseRank': {}
+        }
+      }
+    }
+  }, {
+    '$match': {
+      'denseRank': {
+        '$lte': 10
+      }
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'dupRank': 0
+    }
+  }
+]
