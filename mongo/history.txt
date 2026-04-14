@@ -1,3 +1,30 @@
+# max and min year:
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        year: {
+          $type: "number"
+        }
+      }
+  },
+  {
+    $group: {
+      _id: null,
+      minYear: {
+        $min: "$year"
+      },
+      maxYear: {
+        $max: "$year"
+      }
+    }
+  }
+]
+
+
 [
   {
     $match:

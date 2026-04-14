@@ -21,4 +21,4 @@ with customers_clv as (
 , numbered as (
   select customers_clv.*, median_clv, row_number() over(order by clv desc) as row, dense_rank() over(order by clv desc) as dense_rank  from customers_clv cross join median_value  order by clv desc
 )
--- select * from numbered
+select * from numbered;
