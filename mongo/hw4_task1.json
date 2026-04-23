@@ -1,0 +1,24 @@
+{
+  $expr: {
+    $gt: [
+      {
+        $size: {
+          $ifNull: [
+            '$languages',
+            []
+          ]
+        }
+      },
+      {
+        $size: {
+          $ifNull: [
+            '$countries',
+            []
+          ]
+        }
+      }
+    ]
+  }
+}
+Projection:
+{title: 1, countries: 1, languages: 1}

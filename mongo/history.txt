@@ -1,0 +1,132 @@
+# max and min year:
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        year: {
+          $type: "number"
+        }
+      }
+  },
+  {
+    $group: {
+      _id: null,
+      minYear: {
+        $min: "$year"
+      },
+      maxYear: {
+        $max: "$year"
+      }
+    }
+  }
+]
+
+
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        year: {
+          $eq: 2015
+        },
+        "imdb.rating": {
+          $type: "number"
+        }
+      }
+  },
+  {
+    $unwind: {
+      path: "$cast"
+    }
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: "$cast",
+        count: {
+          $sum: 1
+        },
+        titles: {
+          $push: "$title"
+        },
+        avgRating: {
+          $avg: "$imdb.rating"
+        }
+      }
+  },
+  {
+    $sort:
+      /**
+       * Provide any number of field/order pairs.
+       */
+      {
+        count: -1
+      }
+  },
+  {
+    $limit:
+      /**
+       * Provide the number of documents to limit.
+       */
+      5
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        actor: "$_id",
+        _id: 0,
+        titles: 1,
+        avgRating: {
+          $round: ["$avgRating", 2]
+        }
+      }
+  }
+]
+
+
+{ "genres.2": {$exists: true} }
+
+{
+  filter: {
+    $expr: {
+      $gt: [
+        {
+          $size: '$genres'
+        },
+        2
+      ]
+    }
+  },
+  project: {
+    genres: 1
+  }
+}
+
+{
+  filter: {
+    $expr: {
+      $lt: [
+        '$imbd.rating',
+        '$tomatoes.viewer.rating'
+      ]
+    }
+  },
+  project: {
+    'imdb.rating': 1,
+    'tomatoes.viewer.rating': 1
+  }
+}
